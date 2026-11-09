@@ -36,6 +36,7 @@ import { MarcarErroNotaServicoComoResolvidoService } from '../services/notas-ser
 import { ValidarReferenciasNotaServicoService } from '../services/notas-servico/ValidarReferenciasNotaServicoService';
 import { ValidarProntidaoFiscalNotaServicoService } from '../services/notas-servico/ValidarProntidaoFiscalNotaServicoService';
 import { ValidarPermissaoProducaoRealService } from '../services/fiscal/ValidarPermissaoProducaoRealService';
+import { AmbienteFiscal } from '../entities/NotaServico';
 
 export function criarGestaoNotaServicoController(): GestaoNotaServicoController {
   const notaRepository = new PrismaNotaServicoRepository();
@@ -78,7 +79,18 @@ export function criarGestaoNotaServicoController(): GestaoNotaServicoController 
   const gerarXmlDpsAssinadoService = new GerarXmlDpsAssinadoNotaServicoService(
     gerarXmlDpsService,
     empresaRepository,
-    new ValidadorXmlDpsXsd(() => env.NFSE_XSD_DPS_PATH),
+    new ValidadorXmlDpsXsd((ambienteFiscal) => {
+  if (ambienteFiscal === AmbienteFiscal.HOMOLOGACAO) {
+    return env.NFSE_XSD_DPS_HOMOLOGACAO_PATH;
+  }
+
+  if (ambienteFiscal === AmbienteFiscal.PRODUCAO) {
+    return env.NFSE_XSD_DPS_PATH;
+  }
+
+  return undefined;
+  }),
+
     undefined,
     new AssinadorXmlDpsXmlDsig(),
     resolverConfiguracaoFiscal,

@@ -56,8 +56,17 @@ describe('GerarXmlDpsAssinadoNotaServicoService', () => {
     );
 
     expect(resultado).toBe('<DPS>assinado</DPS>');
-    expect(validar).toHaveBeenNthCalledWith(1, '<DPS>basico</DPS>');
-    expect(validar).toHaveBeenNthCalledWith(2, '<DPS>assinado</DPS>');
+    expect(validar).toHaveBeenNthCalledWith(
+  1,
+  '<DPS>basico</DPS>',
+  AmbienteFiscal.HOMOLOGACAO,
+  );
+
+  expect(validar).toHaveBeenNthCalledWith(
+  2,
+  '<DPS>assinado</DPS>',
+  AmbienteFiscal.HOMOLOGACAO,
+  );
     expect(assinar).toHaveBeenCalledOnce();
   });
 

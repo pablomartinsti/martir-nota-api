@@ -44,7 +44,7 @@ export class GerarXmlDpsAssinadoNotaServicoService {
       throw new AutenticacaoInvalidaError();
     }
 
-    await this.validadorXml.validar(xml);
+    await this.validadorXml.validar(xml, ambienteFiscal);
 
     if (certificado.cnpj !== empresa.cnpj) {
       throw new CertificadoA1CnpjDivergenteError();
@@ -52,7 +52,7 @@ export class GerarXmlDpsAssinadoNotaServicoService {
 
     const xmlAssinado = this.assinadorXml.assinar(xml, certificado);
 
-    await this.validadorXml.validar(xmlAssinado);
+    await this.validadorXml.validar(xmlAssinado, ambienteFiscal);
 
     return xmlAssinado;
   }

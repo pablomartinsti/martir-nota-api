@@ -7,12 +7,20 @@ import { validateXML, XMLFileInfo } from 'xmllint-wasm';
 import { ConfiguracaoFiscalAusenteError } from '../../errors/ConfiguracaoFiscalAusenteError';
 import { XmlDpsInvalidoError } from '../../errors/XmlDpsInvalidoError';
 import { ValidadorXmlDps } from './ValidadorXmlDps';
+import { AmbienteFiscal } from '../../entities/NotaServico';
 
 export class ValidadorXmlDpsXsd implements ValidadorXmlDps {
-  constructor(private readonly obterCaminhoXsd: () => string | undefined) {}
+  constructor(
+    private readonly obterCaminhoXsd: (
+      ambienteFiscal?: AmbienteFiscal,
+    ) => string | undefined,
+  ) {}
 
-  async validar(xml: string): Promise<void> {
-    const caminhoXsd = this.obterCaminhoXsd();
+  async validar(
+    xml: string,
+    ambienteFiscal?: AmbienteFiscal,
+  ): Promise<void> {
+    const caminhoXsd = this.obterCaminhoXsd(ambienteFiscal);
 
     if (!caminhoXsd) {
       throw new ConfiguracaoFiscalAusenteError();

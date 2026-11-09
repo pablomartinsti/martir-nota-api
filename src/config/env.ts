@@ -25,6 +25,7 @@ const envSchema = z
     CORS_ORIGIN: z.string().trim().min(1).default('*'),
     NFSE_CERTIFICADO_CRYPTO_KEY: stringOpcional,
     NFSE_XSD_DPS_PATH: stringOpcional,
+    NFSE_XSD_DPS_HOMOLOGACAO_PATH: stringOpcional,
     NFSE_XSD_EVENTO_PATH: stringOpcional,
     NFSE_SEFIN_HOMOLOGACAO_BASE_URL: z.preprocess(
       (valor) => (valor === '' ? undefined : valor),
