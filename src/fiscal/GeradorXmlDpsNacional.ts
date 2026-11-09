@@ -70,13 +70,8 @@ export class GeradorXmlDpsNacional implements GeradorXmlDps {
       'dCompet',
       this.formatarData(dataCompetencia),
     );
-  this.adicionarTexto(infDps, 'tpEmit', '1');
-
-if (nota.ambienteFiscal === AmbienteFiscal.HOMOLOGACAO) {
-  this.adicionarTexto(infDps, 'finNFSe', '0');
-}
-
-this.adicionarTexto(infDps, 'cLocEmi', codigoMunicipioEmpresa);
+    this.adicionarTexto(infDps, 'tpEmit', '1');
+    this.adicionarTexto(infDps, 'cLocEmi', codigoMunicipioEmpresa);
 
     this.adicionarSubstituicao(infDps, input);
     this.adicionarPrestador(infDps, input);
