@@ -1,3 +1,6 @@
+import { existsSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { Cliente } from '../../entities/Cliente';
@@ -8,6 +11,7 @@ import {
   RegimeTributario,
 } from '../../entities/Empresa';
 import {
+  AmbienteFiscal,
   CodigoMotivoSubstituicaoNfse,
   NotaServico,
   StatusNota,
@@ -15,9 +19,13 @@ import {
 } from '../../entities/NotaServico';
 import { Servico } from '../../entities/Servico';
 import { GeradorXmlDpsNacional } from './GeradorXmlDpsNacional';
+import { ValidadorXmlDpsXsd } from './ValidadorXmlDpsXsd';
+
+const caminhoXsdNt009 = join(tmpdir(), 'nfse-nt009', 'DPS_v1.01.xsd');
+const ambientesFiscais = [AmbienteFiscal.HOMOLOGACAO, AmbienteFiscal.PRODUCAO];
 
 describe('GeradorXmlDpsNacional', () => {
-  it('deve gerar o XML basico da DPS sem alterar a nota', () => {
+  it.each(ambientesFiscais)('deve gerar o XML basico da DPS em %s', async (ambienteFiscal) => {
     const empresa = new Empresa({
       id: 'empresa-1',
       razaoSocial: 'Empresa & Tecnologia Ltda',
@@ -64,6 +72,7 @@ describe('GeradorXmlDpsNacional', () => {
       usuarioId: 'usuario-1',
       clienteId: 'cliente-1',
       servicoId: 'servico-1',
+      ambienteFiscal,
       serieDps: '1',
       numeroDps: '100',
       dataCompetencia: new Date('2026-06-15T00:00:00.000Z'),
@@ -90,7 +99,18 @@ describe('GeradorXmlDpsNacional', () => {
     expect(xml).toContain(
       'Id="DPS350950221234567800019900001000000000000100"',
     );
-    expect(xml).toContain('<tpAmb>2</tpAmb>');
+    const homologacao = ambienteFiscal === AmbienteFiscal.HOMOLOGACAO;
+    expect(xml).toContain(`<tpAmb>${homologacao ? '2' : '1'}</tpAmb>`);
+    expect(xml).toContain('<cNBS>123456789</cNBS>');
+    const posicaoNbs = xml.indexOf('<cNBS>');
+    const posicaoDescricao = xml.indexOf('<xDescServ>');
+    if (homologacao) {
+      expect(xml).toMatch(/<\/tpEmit>\s*<finNFSe>0<\/finNFSe>\s*<cLocEmi>/);
+      expect(posicaoNbs).toBeLessThan(posicaoDescricao);
+    } else {
+      expect(xml).not.toContain('<finNFSe>');
+      expect(posicaoDescricao).toBeLessThan(posicaoNbs);
+    }
     expect(xml).toContain(`<dhEmi>${formatarDataHoraLocal(dataHoraEmissao)}</dhEmi>`);
     expect(xml).toContain('<dCompet>2026-06-15</dCompet>');
     expect(xml).toContain('<CNPJ>12345678000199</CNPJ>');
@@ -123,6 +143,14 @@ describe('GeradorXmlDpsNacional', () => {
     expect(xml).toContain('<xInfComp>Contrato 10 &amp; aditivo 2</xInfComp>');
     expect(xml).not.toContain('<Signature');
     expect(nota.status).toBe(StatusNota.RASCUNHO);
+
+    const caminhoXsd = homologacao
+      ? caminhoXsdNt009
+      : join('schemas', 'DPS_v1.01.xsd');
+    // O pacote da NT 009 é externo ao repositório.
+    if (!homologacao || existsSync(caminhoXsd)) {
+      await new ValidadorXmlDpsXsd(() => caminhoXsd).validar(xml);
+    }
   });
 
   it('nao deve informar aliquota para simples nacional sem retencao de ISS', () => {

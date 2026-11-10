@@ -71,8 +71,12 @@ export class GeradorXmlDpsNacional implements GeradorXmlDps {
       this.formatarData(dataCompetencia),
     );
     this.adicionarTexto(infDps, 'tpEmit', '1');
-    this.adicionarTexto(infDps, 'cLocEmi', codigoMunicipioEmpresa);
 
+    if (nota.ambienteFiscal === AmbienteFiscal.HOMOLOGACAO) {
+      this.adicionarTexto(infDps, 'finNFSe', '0');
+    }
+
+    this.adicionarTexto(infDps, 'cLocEmi', codigoMunicipioEmpresa);
     this.adicionarSubstituicao(infDps, input);
     this.adicionarPrestador(infDps, input);
     this.adicionarTomador(infDps, input);
@@ -210,8 +214,15 @@ export class GeradorXmlDpsNacional implements GeradorXmlDps {
       'cTribMun',
       servico.codigoTributacaoMunicipal,
     );
+    // A ordem de cNBS mudou no esquema da NT 009 de homologação.
+    const usaNt009 = nota.ambienteFiscal === AmbienteFiscal.HOMOLOGACAO;
+    if (usaNt009) {
+      this.adicionarTextoOpcional(codigoServico, 'cNBS', servico.codigoNbs);
+    }
     this.adicionarTexto(codigoServico, 'xDescServ', nota.descricao);
-    this.adicionarTextoOpcional(codigoServico, 'cNBS', servico.codigoNbs);
+    if (!usaNt009) {
+      this.adicionarTextoOpcional(codigoServico, 'cNBS', servico.codigoNbs);
+    }
 
     if (nota.informacoesComplementares) {
       const informacoesComplementares = grupoServico.ele('infoCompl');
