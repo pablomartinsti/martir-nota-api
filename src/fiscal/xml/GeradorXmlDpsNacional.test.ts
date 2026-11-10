@@ -25,7 +25,7 @@ describe('GeradorXmlDpsNacional', () => {
       inscricaoMunicipal: '123456',
       regimeTributario: RegimeTributario.SIMPLES_NACIONAL,
       regimeEspecialTributacao:
-        RegimeEspecialTributacao.SOCIEDADE_PROFISSIONAIS,
+        RegimeEspecialTributacao.NENHUM,
       regimeApuracaoSimplesNacional:
         RegimeApuracaoSimplesNacional.TRIBUTOS_FEDERAIS_E_MUNICIPAL_PELO_SN,
       codigoMunicipioIbge: '3509502',
@@ -110,7 +110,7 @@ describe('GeradorXmlDpsNacional', () => {
     expect(xml).toContain('<email>cliente@parceiro.com.br</email>');
     expect(xml).toContain('<opSimpNac>3</opSimpNac>');
     expect(xml).toContain('<regApTribSN>1</regApTribSN>');
-    expect(xml).toContain('<regEspTrib>6</regEspTrib>');
+    expect(xml).toContain('<regEspTrib>0</regEspTrib>');
     expect(xml).toContain('<cTribNac>010101</cTribNac>');
     expect(xml).toContain(
       '<xDescServ>Consultoria &amp; desenvolvimento</xDescServ>',
@@ -182,6 +182,72 @@ describe('GeradorXmlDpsNacional', () => {
     expect(xml).not.toContain('<pAliq>');
     expect(xml).toContain('<pTotTribSN>2.00</pTotTribSN>');
     expect(xml).not.toContain('<indTotTrib>');
+  });
+
+  it('deve impedir emissao de Simples sem regime de apuracao ou com regime especial incompativel', () => {
+    const empresaBase = {
+      id: 'empresa-1',
+      razaoSocial: 'Empresa Simples Ltda',
+      cnpj: '12345678000199',
+      regimeTributario: RegimeTributario.SIMPLES_NACIONAL,
+      codigoMunicipioIbge: '3509502',
+      cidade: 'Campinas',
+      uf: 'SP',
+    };
+    const cliente = new Cliente({
+      id: 'cliente-1',
+      empresaId: 'empresa-1',
+      nomeRazaoSocial: 'Cliente Teste',
+      cpfCnpj: '12345678901',
+      cidade: 'Campinas',
+      uf: 'SP',
+    });
+    const servico = new Servico({
+      id: 'servico-1',
+      empresaId: 'empresa-1',
+      descricao: 'Consultoria',
+      codigoServico: '01.01',
+      codigoTributacaoNacional: '010101',
+      aliquotaIss: 2,
+    });
+    const nota = new NotaServico({
+      id: 'nota-1',
+      empresaId: 'empresa-1',
+      usuarioId: 'usuario-1',
+      clienteId: 'cliente-1',
+      servicoId: 'servico-1',
+      serieDps: '1',
+      numeroDps: '100',
+      dataCompetencia: new Date('2026-06-15T00:00:00.000Z'),
+      codigoMunicipioPrestacao: '3509502',
+      valorServico: 500,
+      aliquotaIss: 2,
+      descricao: 'Consultoria contabil',
+    });
+    const gerar = (empresa: Empresa) =>
+      new GeradorXmlDpsNacional().gerar({
+        empresa,
+        cliente,
+        servico,
+        nota,
+        dataHoraEmissao: new Date('2026-06-15T18:30:00.000Z'),
+      });
+
+    expect(() => gerar(new Empresa(empresaBase))).toThrow(
+      'empresa.regimeApuracaoSimplesNacional',
+    );
+
+    expect(() =>
+      gerar(
+        new Empresa({
+          ...empresaBase,
+          regimeApuracaoSimplesNacional:
+            RegimeApuracaoSimplesNacional.TRIBUTOS_FEDERAIS_E_MUNICIPAL_PELO_SN,
+          regimeEspecialTributacao:
+            RegimeEspecialTributacao.SOCIEDADE_PROFISSIONAIS,
+        }),
+      ),
+    ).toThrow('empresa.regimeEspecialTributacao');
   });
 
   it('deve gerar grupo de substituicao antes do prestador', () => {
