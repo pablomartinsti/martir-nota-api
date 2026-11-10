@@ -1,4 +1,9 @@
-import { Empresa } from '../../entities/Empresa';
+import {
+  Empresa,
+  RegimeApuracaoSimplesNacional,
+  RegimeEspecialTributacao,
+  RegimeTributario,
+} from '../../entities/Empresa';
 import { NotaServico } from '../../entities/NotaServico';
 import { Servico } from '../../entities/Servico';
 
@@ -35,6 +40,22 @@ export function listarPendenciasFiscaisDps(
     dados.nota.codigoMunicipioPrestacao,
     'nota.codigoMunicipioPrestacao',
   );
+
+  if (dados.empresa.regimeTributario === RegimeTributario.SIMPLES_NACIONAL) {
+    adicionarPendencia(
+      pendencias,
+      dados.empresa.regimeApuracaoSimplesNacional,
+      'empresa.regimeApuracaoSimplesNacional',
+    );
+
+    if (
+      dados.empresa.regimeApuracaoSimplesNacional ===
+        RegimeApuracaoSimplesNacional.TRIBUTOS_FEDERAIS_E_MUNICIPAL_PELO_SN &&
+      dados.empresa.regimeEspecialTributacao !== RegimeEspecialTributacao.NENHUM
+    ) {
+      pendencias.push('empresa.regimeEspecialTributacao');
+    }
+  }
 
   if (dados.nota.aliquotaIss > 9.99) {
     pendencias.push('nota.aliquotaIss');
