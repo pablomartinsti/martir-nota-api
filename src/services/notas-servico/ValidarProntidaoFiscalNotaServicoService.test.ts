@@ -1,7 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { ConfiguracaoFiscalEmpresa } from '../../entities/ConfiguracaoFiscalEmpresa';
-import { Empresa, RegimeTributario } from '../../entities/Empresa';
+import {
+  Empresa,
+  RegimeApuracaoSimplesNacional,
+  RegimeTributario,
+} from '../../entities/Empresa';
 import {
   AmbienteFiscal,
   NotaServico,
@@ -214,6 +218,10 @@ function criarEmpresa(
     razaoSocial: 'Empresa Teste Ltda',
     cnpj: '12345678000199',
     regimeTributario,
+    regimeApuracaoSimplesNacional:
+    regimeTributario === RegimeTributario.SIMPLES_NACIONAL
+    ? RegimeApuracaoSimplesNacional.TRIBUTOS_FEDERAIS_E_MUNICIPAL_PELO_SN
+    : undefined,
     codigoMunicipioIbge: '3170206',
     cidade: 'Uberlandia',
     uf: 'MG',

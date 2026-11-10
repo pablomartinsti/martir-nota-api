@@ -24,8 +24,7 @@ describe('GeradorXmlDpsNacional', () => {
       cnpj: '12345678000199',
       inscricaoMunicipal: '123456',
       regimeTributario: RegimeTributario.SIMPLES_NACIONAL,
-      regimeEspecialTributacao:
-        RegimeEspecialTributacao.SOCIEDADE_PROFISSIONAIS,
+      regimeEspecialTributacao: RegimeEspecialTributacao.NENHUM,
       regimeApuracaoSimplesNacional:
         RegimeApuracaoSimplesNacional.TRIBUTOS_FEDERAIS_E_MUNICIPAL_PELO_SN,
       codigoMunicipioIbge: '3509502',
@@ -110,7 +109,7 @@ describe('GeradorXmlDpsNacional', () => {
     expect(xml).toContain('<email>cliente@parceiro.com.br</email>');
     expect(xml).toContain('<opSimpNac>3</opSimpNac>');
     expect(xml).toContain('<regApTribSN>1</regApTribSN>');
-    expect(xml).toContain('<regEspTrib>6</regEspTrib>');
+    expect(xml).toContain('<regEspTrib>0</regEspTrib>');
     expect(xml).toContain('<cTribNac>010101</cTribNac>');
     expect(xml).toContain(
       '<xDescServ>Consultoria &amp; desenvolvimento</xDescServ>',
